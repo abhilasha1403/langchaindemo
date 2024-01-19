@@ -11,3 +11,7 @@ pypdf
 ctransformers
 Markdown
 langchain_community
+llamaapi
+langchain_experimental
+langchain-google-genai
+pillow 
