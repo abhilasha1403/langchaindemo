@@ -14,4 +14,7 @@ langchain_community
 llamaapi
 langchain_experimental
 langchain-google-genai
-pillow 
+pillow
+psycopg2
+langchain_mistralai
+langchainhub
