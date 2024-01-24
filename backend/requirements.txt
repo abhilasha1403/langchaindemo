@@ -18,3 +18,7 @@ pillow
 psycopg2
 langchain_mistralai
 langchainhub
+sqlalchemy
+pyhive
+thrift
+thrift_sasl
