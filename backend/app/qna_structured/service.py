@@ -13,7 +13,7 @@ from langchain_experimental.sql import SQLDatabaseChain
 from langchain_experimental.sql.base import SQLDatabaseSequentialChain
 from langchain import hub
 from langchain.agents import create_sql_agent
-
+from sqlalchemy import create_engine
 # from langchain.agents import AgentExecutor
 from langchain.agents.agent_types import AgentType
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
@@ -25,7 +25,7 @@ class QnAStructuredService:
           return querydb(query)
 
 def querydb(query):
-    db=fetchdb()
+    db=fetchhivedb()
     llm=load_google_ai()
     agent_executor = create_sql_agent(
     llm=llm,
@@ -40,7 +40,10 @@ def querydb(query):
     answer=agent_executor.run(query)
     return answer
          
-
+def fetchhivedb():
+    engine = create_engine(f'hive://localhost:10000/student_detail')
+    db = SQLDatabase(engine)
+    return db;
 
 def fetchdb(
     
