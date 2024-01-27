@@ -1,6 +1,7 @@
 from flask import Flask, request
 from app.qna_unstructured.service import QnAService
 from app.qna_structured.service import QnAStructuredService
+from app.qna_structured.hiveservice import QnAHiveService
 from app.chat.service import ChatService
 
 app = Flask(__name__)
@@ -8,6 +9,7 @@ app.debug = True
 qnaservice_unstructured = QnAService()
 qnaservice_structured=QnAStructuredService()
 chatservice=ChatService()
+hiveservice=QnAHiveService()
 # Members api route
 
 
@@ -21,6 +23,12 @@ def documentquery():
 def dbquery():
     query = request.args.get('query')
     answer = qnaservice_structured.get_answer(query)
+    return answer
+
+@app.route("/hivedb")
+def hivedbquery():
+    query = request.args.get('query')
+    answer = hiveservice.get_answer(query)
     return answer
 
 @app.route("/chat")

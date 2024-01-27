@@ -29,7 +29,9 @@ conversation=None
 class ChatService:
      def get_answer(self, message):
           return chatMessage(message)
-        
+
+
+
 def chatMessage(message):
     # LLM
     llm = load_llama_model()
