@@ -30,13 +30,20 @@ def get_answer():
         llm = load_google_ai()
         retriever=create_retrieval_qa_bot()
 
-        description = """Use to look up relevant table names and there columns to query upon. Input is a question, output is \
+        description = """Use to look up relevant table info and there columns to query upon. Input is a question, output is \
 relvant tables and there column definitions in json"""
         retriever_tool = create_retriever_tool(
             retriever,
-            name="table_info_tool",
+            name="sql_db_list_tables",
             description=description,
-        )    
+        )   
+
+        custom_suffix = """
+I should first get the table info I know.
+If the info is enough to construct the query, I can build it.
+Otherwise, I is then look at the tables in the database to see what I can query.
+Then I should query the schema of the most relevant tables
+""" 
         system = """You are an agent designed to interact with a hive database.
 Given an input question, create a syntactically correct hive query to run, then look at the results of the query and return the answer.
 Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most 5 results.
@@ -48,19 +55,21 @@ You MUST double check your query before executing it. If you get an error while 
 
 DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
 
-If you need to get relevant tables and schema information, you must ALWAYS first look up the filter value using the "table_info_tool" tool! 
-
+You should first get the table info you know from the sql_db_list_tables
+If the info is enough to construct the query, you can build it.
+Otherwise,you can then look at the tables in the database to see what you can query.
+Then you should query the schema of the most relevant tables
 If the question does not seem related to the database, just return "I don't know" as the answer.""" 
         agent_executor = create_sql_agent(
     llm=llm,
-    db=db,
     extra_tools=[retriever_tool],
     toolkit=SQLDatabaseToolkit(db=db, llm=llm),
-    prompt=system,
+    prefix=system,
     agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
 )
-        answer=agent_executor.invoke(user_question)
+        
+        answer=agent_executor.run(user_question)
         print(answer)
         return ""
 
@@ -68,6 +77,7 @@ If the question does not seem related to the database, just return "I don't know
 
 def fetchhivedb():
     engine = create_engine(f'hive://localhost:10000/dvdrental')  #change hive connection
+    engine.execution_options(set={"hive.exec.dynamic.partition": "true", "auto.convert.join": "false"})
     db = SQLDatabase(engine)
     return db
 
@@ -94,7 +104,7 @@ def create_retrieval_qa_bot(
 def load_google_ai():
     GOOGLE_API_KEY='AIzaSyBT43TG_ZGK2gGXEH1rq48QXB8EivyLuwY'
     os.environ["GOOGLE_API_KEY"]=GOOGLE_API_KEY
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", verbose=True)
+    llm = ChatGoogleGenerativeAI(model="gemini-pro", verbose=True, temperature=0)
 
     return llm
 
